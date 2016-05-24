@@ -239,6 +239,13 @@ void Process(char *server, char * port)
 				fclose(fp);
 			}
 		}
+		fp=fopen("lastrun","r+");
+		if(fp) {
+			fseek(fp,0L,SEEK_SET);
+			fprintf(fp,"%ld",ctime(NULL));
+			fclose(fp);
+		}
+		
 		sleep(1);
 	}
 }
