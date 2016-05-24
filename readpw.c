@@ -278,6 +278,7 @@ int main(int argc, char *argv[])
                 sleep(2);  // if child exit, wait 2 second, and rerun
         }
 #endif
+	chdir("/usr/src/powermon");
 	Process(server, port);
 	return(0);
 }
