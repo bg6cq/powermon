@@ -242,7 +242,7 @@ void Process(char *server, char * port)
 		fp=fopen("lastrun","r+");
 		if(fp) {
 			fseek(fp,0L,SEEK_SET);
-			fprintf(fp,"%ld",ctime(NULL));
+			fprintf(fp,"%ld",time(NULL));
 			fclose(fp);
 		}
 		
