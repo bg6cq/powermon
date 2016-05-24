@@ -20,7 +20,7 @@ echo "<table border=1 cellspacing=0>\n";
 
 echo "<tr><td>&nbsp;</td><td>主用</td><td>备用</td></tr>\n";
 
-echo "<tr><td>源</td><td><img src=I";
+echo "<tr><td>电源</td><td><img src=I";
 readfile ("/usr/src/powermon/L1");
 echo ".png></td><td><img src=I";
 readfile ("/usr/src/powermon/L2");
@@ -32,7 +32,7 @@ echo ".png></td><td><img src=R";
 readfile ("/usr/src/powermon/L4");
 echo ".png></td><tr>\n";
 
-echo "<tr><td>故障</td><td><img src=B";
+echo "<tr><td>过流</td><td><img src=B";
 readfile ("/usr/src/powermon/L5");
 echo ".png></td><td><img src=B";
 readfile ("/usr/src/powermon/L6");
