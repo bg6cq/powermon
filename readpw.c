@@ -131,14 +131,13 @@ int modbus_rtu_recv(int s, uint8_t *buf, int maxlen)
 	uint16_t crc_calculated;
         uint16_t crc_received;
 
-       crc_calculated = crc16(buf, n - 2);
-       crc_received = (buf[n - 2] << 8) | buf[n - 1];
+       	crc_calculated = crc16(buf, n - 2);
+       	crc_received = (buf[n - 2] << 8) | buf[n - 1];
 
-      if (crc_calculated == crc_received) 
-        return n;	
+      	if (crc_calculated == crc_received) 
+        	return n;	
 	assert("crc error");
 }
-
 
 void Process(char *server, char * port) 
 {	
@@ -147,6 +146,7 @@ void Process(char *server, char * port)
 	int n,i;
 	int optval;
    	socklen_t optlen = sizeof(optval);
+	FILE *fp;
 	r_fd= Tcp_connect(server,port);
 	optval = 1;
 	Setsockopt(r_fd, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen);
@@ -159,25 +159,21 @@ void Process(char *server, char * port)
 
 
 	while (1) {
-/*
-	buf[0]=0x01;
-	buf[1]=0x03;
-	buf[2]=0x01;
-	buf[3]=0x90;
-	buf[4]=0x00;
-	buf[5]=0x06;
-	buf[6]=0xc4;
-	buf[7]=0x19;
-*/
-	modbus_rtu_req(buf, &n, 2, 4, 0, 2);
-	dump_pkt(buf,n);
-	Write(r_fd, buf, n);
-//		n = Read(r_fd, buf, 17);
-	n = modbus_rtu_recv(r_fd, buf, MAXLEN);
+//read temp
+		modbus_rtu_req(buf, &n, 2, 4, 0, 2);
+#ifdef DEBUG
+		dump_pkt(buf,n);
+#endif
+		Write(r_fd, buf, n);
+		n = modbus_rtu_recv(r_fd, buf, MAXLEN);
+#ifdef DEBUG
 		fprintf(stderr,"get %d\n",n);
 		dump_pkt(buf,n);
+#endif
 		if(n!=9) {
+#ifdef DEBUG
 			fprintf(stderr,"error\n");
+#endif
 			exit(0);
 		}
 		if(n<=0)   {
@@ -185,43 +181,73 @@ void Process(char *server, char * port)
 		}
 		short int t;
 		t = (buf[3]<<8) + buf[4];
+#ifdef DEBUG
 		fprintf(stderr,"Temp=%d ",t);
+		fp=fopen("temp","r+");
+		if(fp) {
+			fseek(fp,0L,SEEK_SET);
+			fprintf(fp,"%6.2f",t/10.0);
+			fclose(fp);
+		}
+#endif
 		t = (buf[5]<<8) + buf[6];
+		fp=fopen("hum","r+");
+		if(fp) {
+			fseek(fp,0L,SEEK_SET);
+			fprintf(fp,"%5.2f",t/10.0);
+			fclose(fp);
+		}
+#ifdef DEBUG
 		fprintf(stderr,"Hum=%d ",t);
 		fprintf(stderr,"\n");
-		sleep(1);
-	}
-}
+#endif
 
-#if 0
-
-	modbus_rtu_req(buf, &n, 1, 3, 40400, 6);
-	dump_pkt(buf,8);
-	Write(r_fd, buf, 8);
-//		n = Read(r_fd, buf, 17);
-	n = modbus_rtu_recv(r_fd, buf, MAXLEN);
+		modbus_rtu_req(buf, &n, 1, 3, 40400, 6);
+#ifdef DEBUG
+		dump_pkt(buf,8);
+#endif
+		Write(r_fd, buf, 8);
+		n = modbus_rtu_recv(r_fd, buf, MAXLEN);
+#ifdef DEBUG
 		fprintf(stderr,"get %d\n",n);
 		dump_pkt(buf,n);
+#endif
 		if(n!=17) {
+#ifdef DEBUG
 			fprintf(stderr,"error\n");
+#endif
 			exit(0);
 		}
 		if(n<=0)   {
 			exit(0);
 		}
+#ifdef DEBUG
 		for(i=0;i<6;i++) 
 			fprintf(stderr,"L%d=%d ",i+1, (buf[3+i*2]<<8)+buf[4+i*2]);
 		fprintf(stderr,"\n");
+#endif
+		for(i=0;i<6;i++) {
+			char fname[MAXLEN];
+			sprintf(fname,"L%d",i+1);
+			fp=fopen(fname,"r+");
+			if(fp) {
+				fseek(fp,0L,SEEK_SET);
+				if( (buf[3+i*2]<<8)+buf[4+i*2]==1)
+					fprintf(fp,"1");
+				else
+					fprintf(fp,"0");
+				fclose(fp);
+			}
+		}
 		sleep(1);
 	}
 }
 
-#endif
 
 void usage()
 {
-	printf("\naprstomysql v1.0 - aprs relay by james@ustc.edu.cn\n");
-	printf("\naprstomysql [ x.x.x.x CALL ]\n\n");
+	printf("\nreadpw v1.0 by james@ustc.edu.cn\n");
+	printf("\nreadpw [ x.x.x.x port ]\n\n");
 	exit(0);
 }
 
