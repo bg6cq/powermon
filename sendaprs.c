@@ -52,11 +52,11 @@ int main(int argc, char*argv[])
 	int len;
 	char buf[MAXLEN];
 	float temp, hum;
-	fp=fopen("temp","r");
+	fp=fopen("Utemp","r");
 	fgets(buf,MAXLEN,fp);
 	sscanf(buf,"%f",&temp);
 	fclose(fp);
-	fp=fopen("hum","r");
+	fp=fopen("Uhum","r");
 	fgets(buf,MAXLEN,fp);
 	sscanf(buf,"%f",&hum);
 	fclose(fp);

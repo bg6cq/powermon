@@ -159,49 +159,7 @@ void Process(char *server, char * port)
 
 
 	while (1) {
-//read temp
-		modbus_rtu_req(buf, &n, 2, 4, 0, 2);
-#ifdef DEBUG
-		dump_pkt(buf,n);
-#endif
-		Write(r_fd, buf, n);
-		n = modbus_rtu_recv(r_fd, buf, MAXLEN);
-#ifdef DEBUG
-		fprintf(stderr,"get %d\n",n);
-		dump_pkt(buf,n);
-#endif
-		if(n!=9) {
-#ifdef DEBUG
-			fprintf(stderr,"error\n");
-#endif
-			exit(0);
-		}
-		if(n<=0)   {
-			exit(0);
-		}
-		short int t;
-		t = (buf[3]<<8) + buf[4];
-#ifdef DEBUG
-		fprintf(stderr,"Temp=%d ",t);
-		fp=fopen("temp","r+");
-		if(fp) {
-			fseek(fp,0L,SEEK_SET);
-			fprintf(fp,"%6.2f",t/10.0);
-			fclose(fp);
-		}
-#endif
-		t = (buf[5]<<8) + buf[6];
-		fp=fopen("hum","r+");
-		if(fp) {
-			fseek(fp,0L,SEEK_SET);
-			fprintf(fp,"%5.2f",t/10.0);
-			fclose(fp);
-		}
-#ifdef DEBUG
-		fprintf(stderr,"Hum=%d ",t);
-		fprintf(stderr,"\n");
-#endif
-
+// read ATS status
 		modbus_rtu_req(buf, &n, 1, 3, 40400, 6);
 #ifdef DEBUG
 		dump_pkt(buf,8);
@@ -228,10 +186,16 @@ void Process(char *server, char * port)
 #endif
 		for(i=0;i<6;i++) {
 			char fname[MAXLEN];
-			sprintf(fname,"L%d",i+1);
+			sprintf(fname,"UL%d",i+1);
 			fp=fopen(fname,"r+");
 			if(fp) {
 				fseek(fp,0L,SEEK_SET);
+				if(i==0) {		// fix for UPS room ATS L1==0 Error
+					if( (buf[3+2*2]<<8)+buf[4+2*2]==1)
+						fprintf(fp,"1");
+					fclose(fp);
+					continue;
+				}
 				if( (buf[3+i*2]<<8)+buf[4+i*2]==1)
 					fprintf(fp,"1");
 				else
@@ -239,12 +203,57 @@ void Process(char *server, char * port)
 				fclose(fp);
 			}
 		}
-		fp=fopen("lastrun","r+");
+		fp=fopen("Ulastrun","r+");
 		if(fp) {
 			fseek(fp,0L,SEEK_SET);
 			fprintf(fp,"%ld",time(NULL));
 			fclose(fp);
 		}
+
+
+//read temp
+		modbus_rtu_req(buf, &n, 2, 4, 0, 2);
+#ifdef DEBUG
+		dump_pkt(buf,n);
+#endif
+		Write(r_fd, buf, n);
+		n = modbus_rtu_recv(r_fd, buf, MAXLEN);
+#ifdef DEBUG
+		fprintf(stderr,"get %d\n",n);
+		dump_pkt(buf,n);
+#endif
+		if(n!=9) {
+#ifdef DEBUG
+			fprintf(stderr,"error\n");
+#endif
+			exit(0);
+		}
+		if(n<=0)   {
+			exit(0);
+		}
+		short int t;
+		t = (buf[3]<<8) + buf[4];
+#ifdef DEBUG
+		fprintf(stderr,"Temp=%d ",t);
+		fp=fopen("Utemp","r+");
+		if(fp) {
+			fseek(fp,0L,SEEK_SET);
+			fprintf(fp,"%6.2f",t/10.0);
+			fclose(fp);
+		}
+#endif
+		t = (buf[5]<<8) + buf[6];
+		fp=fopen("Uhum","r+");
+		if(fp) {
+			fseek(fp,0L,SEEK_SET);
+			fprintf(fp,"%5.2f",t/10.0);
+			fclose(fp);
+		}
+#ifdef DEBUG
+		fprintf(stderr,"Hum=%d ",t);
+		fprintf(stderr,"\n");
+#endif
+
 		
 		sleep(1);
 	}
