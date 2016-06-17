@@ -14,7 +14,7 @@
 #include "sock.h"
 #include <ctype.h>
 
-#define DEBUG 1
+// #define DEBUG 1
 
 #define MAXLEN 16384
 
@@ -235,13 +235,13 @@ void Process(char *server, char * port)
 		t = (buf[3]<<8) + buf[4];
 #ifdef DEBUG
 		fprintf(stderr,"Temp=%d ",t);
+#endif
 		fp=fopen("Utemp","r+");
 		if(fp) {
 			fseek(fp,0L,SEEK_SET);
 			fprintf(fp,"%6.2f",t/10.0);
 			fclose(fp);
 		}
-#endif
 		t = (buf[5]<<8) + buf[6];
 		fp=fopen("Uhum","r+");
 		if(fp) {
